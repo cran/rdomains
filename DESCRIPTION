@@ -1,6 +1,6 @@
 Package: rdomains
 Title: Get the Category of Content Hosted by a Domain
-Version: 0.1.0
+Version: 0.1.5
 Authors@R: person("Gaurav", "Sood", email = "gsood07@gmail.com", role = c("aut", "cre"))
 Description: Get the category of content hosted by a domain. Use Shallalist <http://shalla.de/>,  
     Virustotal (which provides access to lots of services) <https://www.virustotal.com/>, 
@@ -17,8 +17,8 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-06-15 21:05:49 UTC; gsood
+Packaged: 2016-11-01 23:22:21 UTC; gsood
 Author: Gaurav Sood [aut, cre]
 Maintainer: Gaurav Sood <gsood07@gmail.com>
 Repository: CRAN
-Date/Publication: 2016-06-16 12:37:26
+Date/Publication: 2016-11-03 00:25:46
