@@ -12,7 +12,8 @@ get_shalla_data(outdir = "./", overwrite = FALSE)
 \item{overwrite}{Optional; default is FALSE. If TRUE, the file is overwritten.}
 }
 \description{
-Downloads, unzips and saves the latest version of shallalist data.
+Downloads, unzips and saves the latest version of shallalist data. By default, saves shalla data  
+as \code{shalla_domain_category.csv}.
 }
 \examples{
 \dontrun{
@@ -22,4 +23,3 @@ get_shalla_data()
 \references{
 \url{http://www.shallalist.de/}
 }
-

@@ -1,3 +1,13 @@
+# rdomains 0.1.7
+
+* Changes due to move to a new repo.
+* Basic brightcloud function added
+
+# rdomains 0.1.6 
+
+* Adds not_news classifier that classifies not news based on published work.
+* passes expect_lint_free
+
 # rdomains 0.1.5
 
 * Shallalist and DMOZ data read in with stringAsFactors as FALSE.
