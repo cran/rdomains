@@ -1,61 +1,65 @@
-#' Get Category from Virustotal
+#' Get Category from VirusTotal
 #'
-#' Returns category of content from 6 major services including: BitDefender, Dr. Web, Alexa (DMOZ), Google, 
-#' Websense, and Trendmicro. Not all services will have categories for all the domains. When the categories are
-#' not returned for a particular domain, we return a NA.
-#' 
-#' Get the API Access Key from \url{http://www.virustotal.com/}. Either pass the API Key to the function 
-#' or set the environmental variable: \code{VirustotalToken}. Environment variables persist within 
-#' a R session. 
-#' 
-#' @param domain domain name
+#' Returns category of content from multiple security vendors using the VirusTotal API v3.
+#' The function retrieves domain analysis results including categories from various security
+#' services. Not all services will have categories for all domains.
+#'
+#' Get the API Access Key from \url{https://www.virustotal.com/}. Either pass the API Key to the function
+#' or set the environmental variable: \code{VirustotalToken}. Environment variables persist within
+#' a R session.
+#'
+#' @param domains domain names as character vector
 #' @param apikey virustotal API key
-#' 
-#' @return data.frame with 7 columns: domain, bitdefender, dr_web, alexa, google, websense, trendmicro
-#'  
+#'
+#' @return data.frame with domain and VirusTotal analysis results
+#'
 #' @export
-#' @references \url{https://developers.virustotal.com/v2.0/reference}
-#' 
+#' @references \url{https://docs.virustotal.com/reference/domains}
+#'
 #' @examples \dontrun{
 #' virustotal_cat("http://www.google.com")
+#' virustotal_cat(c("google.com", "facebook.com"))
 #' }
 
-virustotal_cat <- function(domain = NULL, apikey = NULL) {
+virustotal_cat <- function(domains = NULL, apikey = NULL) {
 
-  if (identical(domain, NULL)) stop("Please provide a valid domain.")
+  validate_domains(domains, "domains")
 
   if (identical(Sys.getenv("VirustotalToken"), "")) {
+    if (is.null(apikey)) {
+      cli_abort(c(
+        "VirusTotal API key not found",
+        "i" = "Provide via {.arg apikey} parameter",
+        "i" = "Or set environment variable: {.envvar VirustotalToken}"
+      ))
+    }
     set_key(apikey)
   }
 
-  # Get domain report
-  res <-  domain_report(domain)
+  results <- map_df(domains, function(domain) {
+    res <- tryCatch(
+      domain_report(domain),
+      error = function(e) {
+        cli_warn(c(
+          "Error processing domain: {domain}",
+          "x" = e$message
+        ))
+        return(data.frame(domain = domain))
+      }
+    )
 
-  # Companies from which virustotal returns domain categories
-  cat_names <- c("BitDefender category" = "bitdefender",
-                 "Dr.Web category" = "dr_web",
-                 "Alexa category" = "alexa",
-                 "categories" = "google",
-                 "Websense ThreatSeeker category" = "websense",
-                 "TrendMicro category" = "trendmicro")
+    has_categories <- !is.null(res$data) &&
+                      !is.null(res$data$attributes$categories) &&
+                      length(res$data$attributes$categories) > 0
 
-  # If domain not found, return a data.frame with domain name + NAs
-  if (res$verbose_msg == "Domain not found") {
-      d_res      <- read.table(text = "", col.names = cat_names)
-      d_res[1, ] <- NA
-  } else {
+    if (has_categories) {
+      categories <- res$data$attributes$categories
+      cat_df <- as.data.frame(as.list(categories), stringsAsFactors = FALSE)
+      data.frame(domain = domain, cat_df, stringsAsFactors = FALSE)
+    } else {
+      data.frame(domain = domain)
+    }
+  })
 
-  # If results are returned
-  d_res <- as.data.frame(
-    do.call(cbind, sapply(res[which(names(res) %in% names(cat_names))],
-    "[", 1)))
-
-  names(d_res) <- cat_names[match(names(d_res), names(cat_names))]
-  d_res[, cat_names[!(cat_names %in% names(d_res))]] <- NA
-
-  # Reorder so that we always get same order of columns
-  d_res <- d_res[, names(d_res)[order(cat_names)]]
-  }
-
-  data.frame(domain, d_res)
+  results
 }

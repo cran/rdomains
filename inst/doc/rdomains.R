@@ -1,38 +1,46 @@
-## ---- eval=FALSE, install-----------------------------------------------------
-#  #library(devtools)
-#  install_github("themains/rdomains")
+## ----eval=FALSE, install------------------------------------------------------
+# #library(devtools)
+# install_github("themains/rdomains")
 
-## ---- eval=FALSE, cran_install------------------------------------------------
-#  install.packages("rdomains")
+## ----eval=FALSE, cran_install-------------------------------------------------
+# install.packages("rdomains")
 
-## ---- eval=FALSE, load_pkg----------------------------------------------------
-#  library(rdomains)
+## ----eval=FALSE, load_pkg-----------------------------------------------------
+# library(rdomains)
 
-## ---- eval=FALSE, down_shalla-------------------------------------------------
-#  get_shalla_data()
+## ----eval=FALSE, down_shalla--------------------------------------------------
+# get_shalla_data()
 
-## ---- eval=FALSE, shalla------------------------------------------------------
-#  shalla_cat("http://www.google.com")
+## ----eval=FALSE, shalla-------------------------------------------------------
+# shalla_cat("http://www.google.com")
 
-## ---- eval=FALSE, down_dmoz---------------------------------------------------
-#  get_dmoz_data()
+## ----eval=FALSE, down_dmoz----------------------------------------------------
+# get_dmoz_data()
 
-## ---- eval=FALSE, dmoz--------------------------------------------------------
-#  dmoz_cat("http://www.google.com")
+## ----eval=FALSE, dmoz---------------------------------------------------------
+# dmoz_cat("http://www.google.com")
 
-## ---- eval=FALSE, ml----------------------------------------------------------
-#  adult_ml1_cat("http://www.google.com")
+## ----eval=FALSE, ml-----------------------------------------------------------
+# adult_ml1_cat("http://www.google.com")
 
-## ---- eval=FALSE, virustotal--------------------------------------------------
-#  virustotal_cat("http://www.google.com")
+## ----eval=FALSE, virustotal---------------------------------------------------
+# virustotal_cat("http://www.google.com")
 
-## ---- eval=FALSE, trusted-----------------------------------------------------
-#  trusted_cat("http://www.google.com")
+## ----eval=FALSE, openai-------------------------------------------------------
+# # Set your API key
+# Sys.setenv("OPENAI_API_KEY", "your-api-key-here")
+# 
+# # Classify domains
+# openai_cat("google.com")
 
-## ---- eval=FALSE, set_alexa_cred----------------------------------------------
-#  Sys.setenv("AWS_ACCESS_KEY_ID", "key_id")
-#  Sys.getenv("AWS_SECRET_ACCESS_KEY", "secret_key")
+## ----eval=FALSE, openai_custom------------------------------------------------
+# openai_cat(c("amazon.com", "github.com"),
+#            categories = c("ecommerce", "technology", "social", "other"))
 
-## ---- eval=FALSE, alexa-------------------------------------------------------
-#  alexa_cat(domain="http://www.google.com")[1,]
+## ----eval=FALSE, claude-------------------------------------------------------
+# # Set your API key
+# Sys.setenv("ANTHROPIC_API_KEY", "your-api-key-here")
+# 
+# # Classify domains
+# claude_cat("facebook.com")
 

@@ -1,3 +1,61 @@
+# rdomains 0.4.0
+
+## Breaking Changes
+- Removed `get_alexa_data()` function (Alexa service discontinued by Amazon)
+
+## Major Changes
+- Removed unused aws.alexa dependency
+- Removed devtools from Imports (incorrect usage)
+- Added modern tidyverse-style API with comprehensive input validation
+- Significant code deduplication through shared helper functions
+
+## API Updates
+- Updated `virustotal_cat()` to use VirusTotal API v3 (previously v2.0)
+- Updated documentation references to v3 API endpoints
+- Fixed `virustotal_cat()` implementation to properly extract categories from v3 API response structure
+
+## Improvements
+- All categorization functions now validate inputs with helpful error messages using cli package
+- Standardized parameter naming (virustotal_cat now uses 'domains' instead of 'domain')
+- Better error messages with clear guidance on how to fix issues
+- Modernized code style (pipes, purrr, tibble internally with data.frame output for compatibility)
+- Improved file path handling with informative errors
+- Enhanced rate limiting in LLM functions
+- Cleaner domain preprocessing logic shared across all functions
+
+## Internal Changes
+- Added helper functions for common operations:
+  - `clean_domains()` - standardized domain cleaning
+  - `validate_domains()` - comprehensive input validation
+  - `validate_data_file()` - consistent file validation
+  - `get_api_key()` - unified API key retrieval
+  - `build_categorization_prompt()` - LLM prompt construction
+  - `apply_rate_limit()` - rate limiting logic
+- Refactored to use purrr instead of for-loops where appropriate
+- All functions now return tibbles for modern data handling
+- Added checkmate for robust input validation
+- Added readr for faster CSV reading
+- Extracted domain cleaning logic to single function
+- Improved string operations with stringr
+- Removed redundant `::` notation for imported functions (cleaner code, consistent with @importFrom)
+
+## Breaking Changes
+- All categorization functions now return tibbles instead of data.frames
+- `get_alexa_data()` has been removed (service discontinued)
+- Input validation is now stricter (NULL and empty strings are properly rejected)
+- `virustotal_cat()` parameter renamed from `domain` to `domains` for consistency
+
+# rdomains 0.3.0
+
+* **NEW**: Added LLM-based domain classification with `openai_cat()` and `claude_cat()` functions
+* Support for OpenAI GPT models and Anthropic Claude models for domain categorization
+* Flexible custom category schemas - users can specify their own categories or use defaults
+* Consistent API design matching existing `*_cat()` functions for seamless integration
+* Built-in rate limiting and error handling for API calls
+* **REMOVED**: BrightCloud support due to service unavailability
+* Updated documentation URLs from HTTP to HTTPS where applicable
+* Fixed Shallalist references to reflect service discontinuation
+
 # rdomains 0.2.1
 
 * shallalist stopped its service so downloaded latest shalla db and changed the URL from which we fetch the shallalist file
