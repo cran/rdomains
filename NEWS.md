@@ -1,3 +1,64 @@
+# rdomains 0.5.0
+
+## A label has a date, and now the package says so
+
+Two of the four lookup sources are no longer published: DMOZ closed in March 2017 and
+Shallalist stopped in 2022. Their labels were correct when assigned, but domains expire
+and change hands, so a lookup today can return the previous registrant's category. Until
+now that answer was presented identically to one from a list updated last week.
+
+- New `source_vintage()` reports every category source, when it was last published,
+  whether it is still maintained, and its successor where one exists.
+- `shalla_cat()`, `dmoz_cat()` and `stevenblack_cat()` now return a
+  `source_last_published` column. For the two dead lists this is a constant; for Steven
+  Black's actively-maintained hosts file it is the fetched file's own date.
+- Looking up against a discontinued source warns **once per session** — not once per
+  call, which is a warning people learn to filter out.
+
+The sibling project `piedomains` measured what this confusion costs: its worst class
+disagreed with its own page content 71% of the time, and the cause was not bad annotation
+but roughly a decade between the label and the page. Only 60% of the domains it trained
+on still resolve.
+
+## Fetch page content, not just look domains up
+
+New `collect_content()` fetches homepage HTML and text, so a domain can be
+classified on what it says **today** rather than on what a list said years ago.
+It returns one row per requested domain, never dropped, each carrying `status`,
+`stage`, `error_code` and `retryable` -- so a transient failure is
+distinguishable from a permanent one and only the right rows get retried.
+`fetch_error_codes()` documents the closed set of reasons; `fetch_report()`
+summarises a run.
+
+Supporting functions, all usable on their own if you already hold HTML:
+
+- `page_signals()` reports whether a page is an anti-bot interstitial, a
+  domain-parking placeholder, a server's "nothing here" page, or too thin to
+  classify. Vendor presence alone is not a block: reddit, walmart and quora all
+  serve real pages while embedding reCAPTCHA.
+- `html_text_content()` extracts text, title, description and language.
+
+The crawler identifies itself as `rdomains/<version>` with a contact URL, obeys
+`robots.txt` including `Crawl-delay`, spaces requests to the same host, caps the
+response body, follows redirects by hand so every hop is re-validated, and
+refuses hosts resolving to private or link-local addresses.
+
+Static HTML only -- no headless browser, so a JavaScript-rendered page comes back
+thin and says so.
+
+## Bug fixes
+
+- `get_dmoz_data()` built its output path with `paste0()`, so the documented default
+  `outdir = "."` produced a hidden `.dmoz_domain_category.csv` that `dmoz_cat()` would
+  then fail to find. It now uses `file.path()`, matching its two siblings.
+- `stevenblack_cat(use_file = NULL)` re-downloaded roughly 4 MB on **every call**. The
+  file is now cached for the session.
+
+## Testing
+
+- The Shallalist and DMOZ tests download real files; they now carry `skip_on_cran()` and
+  `skip_if_offline()` guards, as CRAN policy requires.
+
 # rdomains 0.4.0
 
 ## Breaking Changes
