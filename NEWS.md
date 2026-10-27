@@ -1,3 +1,110 @@
+# rdomains 0.6.0
+
+## Result contracts and migration
+
+- Explicit model selections and R environment changes reach an already initialized
+  Python interpreter. Model loading restores both runtimes' prior environment values,
+  including when a checkpoint fails to load.
+
+- Classifiers now return a common result with `input_id`, original `input`, provider,
+  evidence type, structured outcomes, typed `labels`, and source-specific `details`.
+  Provider-specific category columns become `category`; `pie_confidence` becomes
+  `confidence`. Vendor labels and multiple list memberships are retained in `labels`.
+  University records, UT1 usage, and piedomains fetch/model metadata move into `details`.
+- Empty domain vectors return typed empty results without I/O. `no_match` distinguishes
+  absent memberships from execution failures. All download helpers return a path invisibly.
+- `rate_limit` is renamed `delay`, measured in seconds. `web_categories()` exposes the
+  shared default LLM vocabulary. API failures retain status, reason and model identity.
+- `not_news()` is replaced by `news_url_signals()` with independent `soft_news` and
+  `hard_news` flags. `adult_ml1_cat()` is replaced by `adult_name_probability()`; its
+  fitted model and training-era feature encoding are unchanged. No compatibility aliases
+  are retained.
+- Steven Black results describe membership only: `blocked` or `no_match`. Hostname
+  fragments no longer imply advertising or malware. UT1 retains every category membership.
+- `uni_cat()` accepts a saved JSON file and caches its automatic download for the session.
+- Current-content collection defaults to `archive_fallback = FALSE`. Historical and fallback
+  requests preserve the full URL. Archive outages and robots transport failures have
+  distinct retryable outcomes; not-found pages and unresolved redirects do not report success.
+- Corrupt cache records are misses. Substantive articles mentioning parking marketplaces
+  are not classified as parked by that mention alone. Acquired pages share one processing path.
+- VirusTotal preserves typed authentication, quota and HTTP failures; invalid vendor
+  labels fail the affected row. Archive resource guards retain their permanent failure reasons.
+- Inference-only retries preserve caller-restored batch IDs. Mocked model tests restore
+  the session cache, so mocked and real-model checks can run together.
+- `pie_cat(model = ...)` selects a checkpoint explicitly. The pinned default is reused
+  within a session; custom checkpoints are loaded afresh. Saved results support inference-only retry.
+- R 4.5 is the tested minimum. A dedicated R/Python job exercises the bridge and verifies
+  pinned-weight parity both online and offline. The unused XML dependency is removed.
+
+This is an API and correctness release, not a newly trained classifier. The pinned
+piedomains checkpoint's drugs/retail limitations and the historical adult model's lack
+of current calibration remain documented. No new model-quality claim is made.
+
+## October 2026 audit repairs
+
+- Pass original HTML to piedomains >=0.15.0; preserve duplicate inputs, apply thresholds
+  to the full distribution, report actual checkpoint provenance and separate fetch
+  outcomes from inference failures. Text-only `pages` inputs must be fetched again.
+- Preserve path/query case in cache keys and start a new cache namespace. Check robots
+  against the requested path and every content redirect; guard robots redirects too.
+  Validate crawler limits before making requests. Retain bounded retries for transient
+  HTTP failures, and return malformed URLs as failed rows without aborting the batch.
+  Empty redirect locations are not followed; fail-closed robots outcomes respect cache TTL.
+- Reject empty CDX results and select historical captures at or before the requested date.
+- Default to `gpt-6-luna` and `claude-haiku-5-5` with their supported request parameters.
+  Reject invalid/truncated categories and preserve explicit VirusTotal key precedence.
+  Live paid-API tests now require explicit opt-in.
+- Standardize Steven Black input to `domains` and both Steven Black and VirusTotal
+  output to `domain_name`. VirusTotal credentials now use `api_key`.
+- Separate publication dates from retrieval times using checksum-bound metadata.
+  Unverified caller files have unknown dates. Correct the DMOZ snapshot year to 2015.
+  Steven Black absence returns `no_match`; it is not a safety assessment.
+- Document the bundled 2017 adult model and the piedomains checkpoint's known label
+  contamination. These repairs do not retrain either model.
+
+## Earlier development changes
+
+- `collect_content()` now caches fetched pages. A cache hit **replays the stored
+  provenance** -- the time the page was really fetched, the URL it really resolved
+  to -- rather than synthesising a fresh timestamp, so a cached row still says when
+  it is from. Entries expire (`cache_ttl`), the cache is pruned to a size budget
+  (`cache_max_size`), and a corrupt entry is a miss rather than an error.
+  Nothing persists past the session unless you pass `rdomains_cache_dir()`.
+- New `rdomains_cache_dir()` and `cache_clear()`.
+- `collect_content()` and `pie_cat()` take an `archive_date`, fetching each domain as it
+  was on or before that date. Rows carry the *realised*
+  `snapshot_timestamp`, which is the capture found and rarely the date asked for.
+- `collect_content()` recovers pages from the Internet Archive when a host serves an
+  anti-bot interstitial -- detection plus a fallback rather than an evasion arms race.
+  Recovered rows carry `source = "archive"` and a `snapshot_timestamp`, so the vintage is
+  never hidden. A domain that no longer resolves is deliberately **not** recovered this
+  way: answering "what was this" while looking like "what is this" is the staleness this
+  package exists to surface.
+- New `pie_cat()`: fetches a domain's homepage and classifies its **current** content
+  with the piedomains model, rather than looking the domain up in a list written years
+  ago. It reaches the model through the Python package via `reticulate`, so the four
+  fragile pieces of the model input -- the domain prefix, temperature scaling, label
+  projection and the text cleaner -- stay on the Python side rather than becoming a
+  second place they can drift. `parked` and `unavailable` pages are labelled from the
+  page itself and cost no model call.
+- `collect_content()`'s `max_bytes` default is now 10 MB, matching piedomains. At 2 MB
+  it rejected cnn.com -- roughly 6 MB of homepage -- as `content_too_large` while the
+  server returned 200.
+- New `ut1_cat()` and `get_ut1_data()`: the UT-Capitole blacklists, the **maintained
+  successor to Shallalist**. Where `shalla_cat()` answers from a list that stopped in
+  January 2022, this one is updated continuously. Categories are UT1's own and are
+  reported verbatim, with `ut1_usage` saying whether UT1 maintains the list for blocking
+  or for allowing -- both describe content.
+- `collect_content()` honours an explicit `http://` or `https://` in the input, keeping
+  its port and path. Forcing `https://` meant http-only hosts were unreachable.
+- An oversized response is now reported as `content_too_large` rather than
+  `connection_error`. curl aborts the transfer, so the limit surfaced as a request
+  failure -- and `connection_error` is retryable, so callers would have retried a
+  too-large page forever.
+- End-to-end tests run against a real local HTTP server (`webfakes`), covering redirects
+  to private addresses, robots.txt refusal, oversized bodies, bot walls, and whether the
+  cache actually prevents a second request.
+
 # rdomains 0.5.0
 
 ## A label has a date, and now the package says so

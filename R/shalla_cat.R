@@ -6,39 +6,34 @@
 #'
 #' Shallalist stopped publishing in 2022, so these labels describe the domain as it was
 #' then or earlier, not as it is now. The returned \code{source_last_published} column
-#' carries that vintage, and a warning is issued once per session. See
+#' carries that vintage when the file has verified download metadata.
+#' A warning is issued once per session. See
 #' \code{\link{source_vintage}}.
+#'
+#' Publication dates come from the `.metadata.json` sidecar written by the downloader,
+#' checked against the file contents. `source_fetched_at` is the download time.
+#' Files without matching metadata return `NA` dates; filesystem timestamps are not used.
 #'
 #' @param domains vector of domain names
 #' @param use_file path to the latest shallalist file downloaded using \code{\link{get_shalla_data}}
 #'
-#' @return data.frame with the original list, the content category of the domain, and the
-#'   vintage of the list that supplied it
+#' @return A tibble following [classification_results]. Source-specific data are
+#'   retained in `details`; all source labels are retained in `labels`.
 #'
 #' @export
 #' @seealso \code{\link{source_vintage}} for the provenance of every category source
 #' @examples \dontrun{
 #' shalla_cat(domains = "http://www.google.com")
 #' }
-
-shalla_cat <- function(domains = NULL, use_file = NULL) {
-
+shalla_cat <- function(domains, use_file = NULL) {
   validate_domains(domains)
-  c_domains <- clean_domains(domains)
-
-  data_file <- validate_data_file(
-    use_file,
-    "shalla_domain_category.csv",
-    "get_shalla_data"
+  if (!length(domains)) {
+    return(classification_result(domains, "shalla", "list_membership", "lookup"))
+  }
+  data_file <- validate_data_file(use_file, "shalla_domain_category.csv", "get_shalla_data")
+  data <- read_csv(
+    data_file, show_col_types = FALSE, col_types = readr::cols(.default = readr::col_character())
   )
-
-  shalla <- read_csv(data_file, show_col_types = FALSE)
-
   warn_source_vintage("shalla")
-
-  tibble(
-    domain_name = c_domains,
-    shalla_category = shalla$category[match(c_domains, shalla$domains)],
-    source_last_published = SOURCE_VINTAGE$shalla$last_published
-  )
+  lookup_result(domains, data, "domains", "category", "shalla", load_source_metadata(data_file))
 }

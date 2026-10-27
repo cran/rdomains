@@ -12,24 +12,35 @@ long_page <- function(words, ...) {
   paste0(
     "<html><title>", ..1 %||% "A Real Site", "</title><body>",
     paste(rep("genuine page content about the subject", ceiling(words / 6)),
-          collapse = " "),
+      collapse = " "
+    ),
     "</body></html>"
   )
 }
-`%||%` <- function(x, y) if (is.null(x)) y else x
+`%||%` <- function(x, y) if (is.null(x)) y else x # nolint: object_name_linter.
 
 test_that("strong anti-bot markers are detected", {
-  expect_equal(page_signals("<html><body>captcha-delivery.com</body></html>")$block_vendor,
-               "datadome")
-  expect_equal(page_signals("<html><body>cf_chl_opt</body></html>")$block_vendor,
-               "cloudflare")
-  expect_equal(page_signals("<html><body>Incapsula incident ID 123</body></html>")$block_vendor,
-               "imperva")
+  expect_equal(
+    page_signals("<html><body>captcha-delivery.com</body></html>")$block_vendor,
+    "datadome"
+  )
+  expect_equal(
+    page_signals("<html><body>cf_chl_opt</body></html>")$block_vendor,
+    "cloudflare"
+  )
+  expect_equal(
+    page_signals("<html><body>Incapsula incident ID 123</body></html>")$block_vendor,
+    "imperva"
+  )
   expect_true(page_signals("<html><body>Reference #18.abc</body></html>")$blocked)
 })
 
 test_that("a challenge title is itself the tell", {
-  s <- page_signals("<html><title>Just a moment...</title><body>challenges.cloudflare.com</body></html>")
+  html <- paste0(
+    "<html><title>Just a moment...</title>",
+    "<body>challenges.cloudflare.com</body></html>"
+  )
+  s <- page_signals(html)
   expect_true(s$blocked)
   expect_equal(s$page_state, "blocked")
 })
@@ -115,6 +126,33 @@ test_that("page_state prefers blocked over parked over unavailable over thin", {
 test_that("page_signals returns one row with the documented columns", {
   s <- page_signals("<html><body>hello</body></html>")
   expect_equal(nrow(s), 1)
-  expect_true(all(c("page_state", "blocked", "block_vendor", "parked",
-                    "unavailable", "thin", "n_tokens") %in% names(s)))
+  expect_true(all(c(
+    "page_state", "blocked", "block_vendor", "parked",
+    "unavailable", "thin", "n_tokens"
+  ) %in% names(s)))
+})
+
+# "dan.com" is a substring of "jordan.com", "sedo.com" of "cassedo.com". The registrar
+# list is checked before the length guard, so an unanchored match relabels an arbitrarily
+# long real page as a placeholder.
+test_that("a real page that merely names a registrar is not parked", {
+  html <- paste0(
+    "<html><title>Air Jordan</title><body>",
+    paste(rep("michael jordan sneaker history and release notes", 80),
+      collapse = " "
+    ),
+    " visit jordan.com for the official store</body></html>"
+  )
+  s <- page_signals(html)
+  expect_false(s$parked)
+  expect_equal(s$page_state, "content")
+})
+
+test_that("an actual registrar landing page is still parked", {
+  s <- page_signals("<html><body>This domain is listed for sale at dan.com</body></html>")
+  expect_true(s$parked)
+  expect_equal(s$page_state, "parked")
+
+  s2 <- page_signals("<html><body>Offered by www.hugedomains.com</body></html>")
+  expect_true(s2$parked)
 })

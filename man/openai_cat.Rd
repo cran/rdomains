@@ -5,11 +5,11 @@
 \title{Get Category from OpenAI}
 \usage{
 openai_cat(
-  domains = NULL,
+  domains,
   api_key = NULL,
   categories = NULL,
-  model = "gpt-4o-mini",
-  rate_limit = 0.5
+  model = "gpt-6-luna",
+  delay = 0.5
 )
 }
 \arguments{
@@ -19,16 +19,18 @@ openai_cat(
 
 \item{categories}{vector of categories to classify into. If NULL, uses default web categories}
 
-\item{model}{OpenAI model to use (default: "gpt-4o-mini" for cost efficiency)}
+\item{model}{OpenAI model to use (default: "gpt-6-luna" for cost efficiency)}
 
-\item{rate_limit}{delay in seconds between API calls (default: 0.5)}
+\item{delay}{delay in seconds between API calls (default: 0.5)}
 }
 \value{
-data.frame with original list and content category of the domain
+A tibble following \link{classification_results}, including provider failures and model
+identity.
 }
 \description{
-Fetches category of content hosted by a domain using OpenAI's chat completion API.
-The function uses GPT models to classify domains into specified categories.
+Infers a category from the domain name using OpenAI's chat completion API.
+No page content is fetched. The answer reflects the provider's knowledge and the
+domain name, not a verified observation of the current website.
 }
 \examples{
 \dontrun{

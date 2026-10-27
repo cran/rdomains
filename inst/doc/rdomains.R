@@ -1,46 +1,33 @@
-## ----eval=FALSE, install------------------------------------------------------
-# #library(devtools)
-# install_github("themains/rdomains")
+## ----setup, include=FALSE-----------------------------------------------------
+library(rdomains)
 
-## ----eval=FALSE, cran_install-------------------------------------------------
-# install.packages("rdomains")
+## ----lookup-------------------------------------------------------------------
+path <- tempfile(fileext = ".csv")
+write.csv(data.frame(
+  domain = c("example.com", "example.com", "university.example"),
+  category = c("news", "shopping", "education"),
+  usage = c("black", "black", "white")
+), path, row.names = FALSE)
+results <- ut1_cat(c("https://example.com/article", "missing.example"), use_file = path)
+results[c("input_id", "input", "provider", "status", "category")]
+results$labels[[1]]
+fetch_report(results)
 
-## ----eval=FALSE, load_pkg-----------------------------------------------------
-# library(rdomains)
+## ----empty-retry--------------------------------------------------------------
+pending <- which(results$retryable)
+retried <- ut1_cat(results$input[pending], use_file = path)
+retried$input_id <- results$input_id[pending]
+results[pending, ] <- retried
+stopifnot(nrow(results) == 2L, nrow(retried) == 0L)
+unlink(path)
 
-## ----eval=FALSE, down_shalla--------------------------------------------------
-# get_shalla_data()
+## ----page-state---------------------------------------------------------------
+page_signals("<html><body>This domain is for sale. Inquire now.</body></html>")
+news_url_signals(c("https://example.com/sport", "https://example.com/politics"))
 
-## ----eval=FALSE, shalla-------------------------------------------------------
-# shalla_cat("http://www.google.com")
-
-## ----eval=FALSE, down_dmoz----------------------------------------------------
-# get_dmoz_data()
-
-## ----eval=FALSE, dmoz---------------------------------------------------------
-# dmoz_cat("http://www.google.com")
-
-## ----eval=FALSE, ml-----------------------------------------------------------
-# adult_ml1_cat("http://www.google.com")
-
-## ----eval=FALSE, virustotal---------------------------------------------------
-# virustotal_cat("http://www.google.com")
-
-## ----eval=FALSE, openai-------------------------------------------------------
-# # Set your API key
-# Sys.setenv("OPENAI_API_KEY", "your-api-key-here")
-# 
-# # Classify domains
-# openai_cat("google.com")
-
-## ----eval=FALSE, openai_custom------------------------------------------------
-# openai_cat(c("amazon.com", "github.com"),
-#            categories = c("ecommerce", "technology", "social", "other"))
-
-## ----eval=FALSE, claude-------------------------------------------------------
-# # Set your API key
-# Sys.setenv("ANTHROPIC_API_KEY", "your-api-key-here")
-# 
-# # Classify domains
-# claude_cat("facebook.com")
+## ----content, eval=FALSE------------------------------------------------------
+# reticulate::py_require("piedomains==0.15.0", python_version = ">=3.12")
+# pages <- collect_content("https://example.com/article")
+# classified <- pie_cat(pages = pages)
+# classified$details[[1]][c("fetched_at", "source", "snapshot_timestamp", "fetch_status")]
 

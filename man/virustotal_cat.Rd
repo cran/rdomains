@@ -4,15 +4,16 @@
 \alias{virustotal_cat}
 \title{Get Category from VirusTotal}
 \usage{
-virustotal_cat(domains = NULL, apikey = NULL)
+virustotal_cat(domains, api_key = NULL)
 }
 \arguments{
 \item{domains}{domain names as character vector}
 
-\item{apikey}{virustotal API key}
+\item{api_key}{virustotal API key}
 }
 \value{
-data.frame with domain and VirusTotal analysis results
+A tibble following \link{classification_results}. Source-specific data are
+retained in \code{details}; all source labels are retained in \code{labels}.
 }
 \description{
 Returns category of content from multiple security vendors using the VirusTotal API v3.
@@ -20,7 +21,7 @@ The function retrieves domain analysis results including categories from various
 services. Not all services will have categories for all domains.
 }
 \details{
-Get the API Access Key from \url{https://www.virustotal.com/}. Either pass the API Key to the function
+Get the API Access Key from \url{https://www.virustotal.com/}. Either pass the API Key to the function # nolint: line_length_linter.
 or set the environmental variable: \code{VirustotalToken}. Environment variables persist within
 a R session.
 }

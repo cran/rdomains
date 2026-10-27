@@ -4,7 +4,7 @@
 \alias{shalla_cat}
 \title{Get Category from Shallalist}
 \usage{
-shalla_cat(domains = NULL, use_file = NULL)
+shalla_cat(domains, use_file = NULL)
 }
 \arguments{
 \item{domains}{vector of domain names}
@@ -12,8 +12,8 @@ shalla_cat(domains = NULL, use_file = NULL)
 \item{use_file}{path to the latest shallalist file downloaded using \code{\link{get_shalla_data}}}
 }
 \value{
-data.frame with the original list, the content category of the domain, and the
-  vintage of the list that supplied it
+A tibble following \link{classification_results}. Source-specific data are
+retained in \code{details}; all source labels are retained in \code{labels}.
 }
 \description{
 Fetches category of content hosted by a domain according to Shalla.
@@ -23,8 +23,13 @@ If not, it looks for \code{shalla_domain_category.csv} in the working directory.
 \details{
 Shallalist stopped publishing in 2022, so these labels describe the domain as it was
 then or earlier, not as it is now. The returned \code{source_last_published} column
-carries that vintage, and a warning is issued once per session. See
+carries that vintage when the file has verified download metadata.
+A warning is issued once per session. See
 \code{\link{source_vintage}}.
+
+Publication dates come from the \code{.metadata.json} sidecar written by the downloader,
+checked against the file contents. \code{source_fetched_at} is the download time.
+Files without matching metadata return \code{NA} dates; filesystem timestamps are not used.
 }
 \examples{
 \dontrun{

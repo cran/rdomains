@@ -8,22 +8,31 @@ collect_content(
   domains = NULL,
   delay = 1,
   timeout = 10,
-  max_bytes = 2 * 1024^2,
+  max_bytes = 10 * 1024^2,
   obey_robots = TRUE,
   max_crawl_delay = 30,
   max_redirects = 5,
+  cache_dir = NULL,
+  cache_ttl = 7 * 86400,
+  cache_max_size = 1024^3,
+  allow_hosts = character(),
+  archive_fallback = FALSE,
+  archive_date = NULL,
   user_agent = rdomains_user_agent()
 )
 }
 \arguments{
 \item{domains}{Character vector of domains or URLs.}
 
-\item{delay}{Minimum seconds between requests to the same host. `Crawl-delay` overrides
+\item{delay}{Minimum seconds between requests to the same host. \code{Crawl-delay} overrides
 this upward.}
 
 \item{timeout}{Per-request timeout, seconds.}
 
-\item{max_bytes}{Cap on the response body actually read.}
+\item{max_bytes}{Cap on the response body actually read. The default matches
+piedomains' 10 MB. A smaller cap looks prudent and is not: cnn.com's homepage
+alone is roughly 6 MB, so a 2 MB limit rejects major news sites as
+\code{content_too_large} while they return HTTP 200.}
 
 \item{obey_robots}{Whether to fetch and honour robots.txt. Turning this off is
 discouraged and is your responsibility, not the package's.}
@@ -34,21 +43,47 @@ sleeping on it.}
 \item{max_redirects}{Maximum redirect hops to follow. Every hop is re-validated, so a
 redirect cannot be used to reach an address the first check refused.}
 
+\item{cache_dir}{Where to cache fetched pages. Defaults to a directory under
+\code{\link[=tempdir]{tempdir()}}, so nothing persists past the session; pass \code{\link[=rdomains_cache_dir]{rdomains_cache_dir()}} to opt
+into a cache that does.}
+
+\item{cache_ttl}{Seconds a cached page stays fresh.}
+
+\item{cache_max_size}{Prune the cache above this many bytes, oldest first.}
+
+\item{allow_hosts}{Hosts exempt from the private-address checks, by exact name. Only
+the hosts named are exempt, so a redirect elsewhere is still refused. Intended for
+testing against a local server.}
+
+\item{archive_fallback}{Opt in to archived content (default \code{FALSE}). When a host serves an
+anti-bot interstitial, try the
+Internet Archive's most recent capture. Rows recovered this way carry
+\code{source = "archive"} and a \code{snapshot_timestamp}, so the vintage is never
+hidden. Dead domains and explicitly exempted hosts are not recovered this way.}
+
+\item{archive_date}{Fetch each domain as it was on this date (\code{"YYYYMMDD"}) from the
+Internet Archive instead of fetching it live. This is how you ask what a domain
+\emph{used to be} -- and, set against a live run, how you measure whether a label has gone
+stale. Rows carry \code{source = "archive"} and the realised \code{snapshot_timestamp}, which
+is the latest capture on or before the requested day.}
+
 \item{user_agent}{Override the identifying user-agent.}
 }
 \value{
-A tibble with one row per input: `domain_name`, `status`, `stage`, `error_code`,
-  `retryable`, `http_status`, `final_url`, `fetched_at`, `content_bytes`, `title`,
-  `description`, `lang`, `text`, `n_tokens`, `page_state`, `block_vendor`,
-  `robots_allowed`, `source_last_published`.
+A tibble with one row per input: \code{input_id}, \code{input}, \code{domain_name},
+\code{archive_error_code}, \code{status}, \code{stage}, \code{error_code},
+\code{retryable}, \code{http_status}, \code{final_url}, \code{fetched_at}, \code{content_bytes}, \code{title},
+\code{description}, \code{lang}, \code{text}, \code{html}, \code{n_tokens}, \code{page_state}, \code{block_vendor},
+\code{robots_allowed}, \code{from_cache}, \code{source}, \code{snapshot_timestamp}, \code{source_last_published}.
+Live pages have no inferred publication date; \code{fetched_at} records retrieval.
 }
 \description{
 Every requested domain comes back, in order, whether or not it was reachable. Failures
-carry a code from [fetch_error_codes()] rather than a bare `NA`.
+carry a code from \code{\link[=fetch_error_codes]{fetch_error_codes()}} rather than a bare \code{NA}.
 }
 \details{
-The crawler identifies itself as `rdomains/<version>`, obeys `robots.txt` including
-`Crawl-delay`, spaces requests to the same host, caps the response body, and refuses to
+The crawler identifies itself as \verb{rdomains/<version>}, obeys \code{robots.txt} including
+\code{Crawl-delay}, spaces requests to the same host, caps the response body, and refuses to
 fetch hosts that resolve to private or link-local addresses.
 }
 \examples{
@@ -57,10 +92,10 @@ res <- collect_content(c("example.com", "wikipedia.org"))
 fetch_report(res)
 
 # retry only what is worth retrying
-again <- collect_content(res$domain_name[res$retryable])
+again <- collect_content(res$input[res$retryable])
 }
 }
 \seealso{
-[fetch_report()] to summarise the run, [page_signals()] for what the page
-  states are, [source_vintage()] for how a live fetch compares with the static lists.
+\code{\link[=fetch_report]{fetch_report()}} to summarise the run, \code{\link[=page_signals]{page_signals()}} for what the page
+states are, \code{\link[=source_vintage]{source_vintage()}} for how a live fetch compares with the static lists.
 }

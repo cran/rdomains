@@ -4,7 +4,7 @@
 \alias{get_shalla_data}
 \title{Get Shalla Data}
 \usage{
-get_shalla_data(outdir = "./", overwrite = FALSE)
+get_shalla_data(outdir = ".", overwrite = FALSE)
 }
 \arguments{
 \item{outdir}{Optional; folder to which you want to save the file; Default is same folder}
@@ -12,10 +12,10 @@ get_shalla_data(outdir = "./", overwrite = FALSE)
 \item{overwrite}{Optional; default is FALSE. If TRUE, the file is overwritten.}
 }
 \description{
-Shallalist service was discontinued in January 2022. This function downloads 
+Shallalist service was discontinued in January 2022. This function downloads
 the last archived copy (from 1/14/22) that we have preserved on GitHub.
 The original service at shallalist.de is no longer available.
-Downloads, unzips and saves the final version of shallalist data. By default, saves shalla data  
+Downloads, unzips and saves the final version of shallalist data. By default, saves shalla data
 as \code{shalla_domain_category.csv}.
 }
 \examples{

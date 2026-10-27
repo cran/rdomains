@@ -73,20 +73,12 @@ RD_DENIAL_TEXT <- paste0(
 #' @noRd
 RD_INTERSTITIAL_MAX_BYTES <- 60000L
 
-#' Registrars and parking services whose landing pages are unmistakable
-#' @keywords internal
-#' @noRd
-RD_PARKING_SERVICES <- c(
-  "dan.com", "sedo.com", "hugedomains", "afternic", "bodis.com",
-  "parkingcrew", "wc_landing", "domainmarket", "undeveloped.com", "namesilo.com"
-)
-
 #' Phrases a parking page uses about itself. Held to a length limit because a real shop
 #' legitimately says "for sale" while running to thousands of words.
 #' @keywords internal
 #' @noRd
 RD_PARKING_PHRASES <- c(
-  "is for sale", "buy this domain", "may be for sale", "domain for sale",
+  "is for sale", "is listed for sale", "buy this domain", "may be for sale", "domain for sale",
   "this domain is parked", "domain parking", "inquire about this domain",
   "domain name is for sale", "the domain you are looking for is for sale",
   # Found by sampling what the first version missed: orderwith.com, a parked page
@@ -139,7 +131,8 @@ RD_UNAVAILABLE_MAX_WORDS <- 60L
 #' @noRd
 html_title <- function(html) {
   m <- str_match(html, regex("<title[^>]*>(.*?)</title>",
-                                               ignore_case = TRUE, dotall = TRUE))
+    ignore_case = TRUE, dotall = TRUE
+  ))
   if (is.na(m[1, 2])) "" else tolower(str_trim(m[1, 2]))
 }
 
@@ -151,8 +144,10 @@ html_title <- function(html) {
 #' @noRd
 first_marker <- function(lowered, markers) {
   for (vendor in names(markers)) {
-    if (any(vapply(markers[[vendor]], function(m) grepl(m, lowered, fixed = TRUE),
-                   logical(1)))) {
+    if (any(vapply(
+      markers[[vendor]], function(m) grepl(m, lowered, fixed = TRUE),
+      logical(1)
+    ))) {
       return(vendor)
     }
   }
@@ -171,25 +166,11 @@ looks_like_interstitial <- function(html, domain = "") {
     return(TRUE)
   }
   if (nzchar(domain) && identical(title, tolower(str_trim(domain))) &&
-      nchar(html) < 4000) {
+        nchar(html) < 4000) {
     return(TRUE)
   }
   nchar(html) < RD_INTERSTITIAL_MAX_BYTES &&
     grepl(RD_DENIAL_TEXT, html, ignore.case = TRUE, perl = TRUE)
-}
-
-#' Is the extracted text too short to classify honestly?
-#'
-#' @param text Extracted page text.
-#' @param min_tokens Floor, in whitespace-separated tokens.
-#'
-#' @return `TRUE` when the text falls below the floor.
-#' @keywords internal
-#' @noRd
-is_thin <- function(text, min_tokens = 30L) {
-  length(strsplit(str_trim(text), "\\s+")[[1]][nzchar(
-    strsplit(str_trim(text), "\\s+")[[1]]
-  )]) < min_tokens
 }
 
 #' Is this page a domain-parking placeholder rather than a site?
@@ -205,13 +186,15 @@ is_thin <- function(text, min_tokens = 30L) {
 #' @noRd
 looks_parked <- function(text) {
   lowered <- tolower(text)
-  if (any(vapply(RD_PARKING_SERVICES, function(s) grepl(s, lowered, fixed = TRUE),
-                 logical(1)))) {
-    return(TRUE)
-  }
-  # A phrase alone is not enough: length separates a placeholder from a shop.
   if (word_count(lowered) > RD_PARKED_MAX_WORDS) {
     return(FALSE)
+  }
+  hosted <- grepl(
+    "^(hosted|offered) by (www[.])?(sedo[.]com|hugedomains[.]com|dan[.]com)[.! ]*$",
+    lowered
+  )
+  if (hosted) {
+    return(TRUE)
   }
   any(vapply(RD_PARKING_PHRASES, function(p) grepl(p, lowered, fixed = TRUE), logical(1)))
 }
@@ -233,10 +216,14 @@ looks_unavailable <- function(text) {
   if (word_count(lowered) > RD_UNAVAILABLE_MAX_WORDS) {
     return(FALSE)
   }
-  any(vapply(RD_SERVER_ARTIFACTS, function(m) grepl(m, lowered, fixed = TRUE),
-             logical(1))) ||
-    any(vapply(RD_UNAVAILABLE_PHRASES, function(p) grepl(p, lowered, fixed = TRUE),
-               logical(1)))
+  any(vapply(
+    RD_SERVER_ARTIFACTS, function(m) grepl(m, lowered, fixed = TRUE),
+    logical(1)
+  )) ||
+    any(vapply(
+      RD_UNAVAILABLE_PHRASES, function(p) grepl(p, lowered, fixed = TRUE),
+      logical(1)
+    ))
 }
 
 #' Count whitespace-separated words
@@ -279,11 +266,17 @@ word_count <- function(x) {
 #' page_signals("<html><body>This domain is for sale. Inquire now.</body></html>")
 #'
 #' # A real page that merely embeds reCAPTCHA is not blocked
-#' page_signals(paste0("<html><title>Reddit</title><body>",
-#'                     paste(rep("real discussion content", 200), collapse = " "),
-#'                     "<script src='recaptcha/api.js'></script></body></html>"))
+#' page_signals(paste0(
+#'   "<html><title>Reddit</title><body>",
+#'   paste(rep("real discussion content", 200), collapse = " "),
+#'   "<script src='recaptcha/api.js'></script></body></html>"
+#' ))
 page_signals <- function(html, text = NULL, domain = "", status = NULL) {
   assert_character(html, len = 1, any.missing = FALSE)
+  if (!is.null(text)) assert_character(text, len = 1, any.missing = FALSE)
+  if (!is.null(domain)) assert_character(domain, len = 1, any.missing = TRUE)
+  if (length(status) == 1L && is.na(status)) status <- NULL
+  if (!is.null(status)) validate_number(status, "status", lower = 100, upper = 599, integer = TRUE)
   if (is.null(text)) {
     text <- html_text_content(html)$text
   }
@@ -296,8 +289,8 @@ page_signals <- function(html, text = NULL, domain = "", status = NULL) {
   reason <- if (blocked) "strong anti-bot marker" else NA_character_
 
   if (!blocked && !is.null(status) && !is.na(status) &&
-      as.integer(status) %in% RD_BLOCK_STATUSES &&
-      looks_like_interstitial(html, domain)) {
+        as.integer(status) %in% RD_BLOCK_STATUSES &&
+        looks_like_interstitial(html, domain)) {
     blocked <- TRUE
     vendor <- "status"
     reason <- paste0("HTTP ", status, " with an interstitial body")
