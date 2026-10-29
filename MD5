@@ -1,7 +1,7 @@
-14673543576526b97009ca8f1898f9a2 *DESCRIPTION
+f458372f52fecd5f6334644dab891b4a *DESCRIPTION
 988a5e26bfe2fed3d5c8954b4d801421 *LICENSE
 efb0ba83a5783e8187fa1d4fd1c02664 *NAMESPACE
-2675b959785f6d457d229086c5abbcd0 *NEWS.md
+39f33e62e68d1ecfca5ea5c962c8e5eb *NEWS.md
 abca5bf15d6fe29b3be375d2e1df44e5 *R/adult_name_probability.R
 39bf7ac0714c6d09df04b64d4ae48df1 *R/archive.R
 68a53e199bce45c6f167cd86fbf7221e *R/claude_cat.R
@@ -70,12 +70,12 @@ a6f6056c496e7f9978777313baf7c42e *man/ut1_cat.Rd
 2f13b1bf1e5ceef695129d2f417245b5 *tests/testthat.R
 46ee6f291c0de96899ccac00b6a027e2 *tests/testthat/fixtures/model-page.json
 a4debd4712aff29a761359610e3cf498 *tests/testthat/test-audit-correctness.R
-04f4812e3637ce9ed54833a8a87d7fcc *tests/testthat/test-audit-http.R
+ddcdf0fbf19626f354b3a97cece11c63 *tests/testthat/test-audit-http.R
 79d8d2069a393798124e81a018ac45e5 *tests/testthat/test-audit-providers.R
 fcf0894c21cab52ed000c7ce6160a92c *tests/testthat/test-claude-cat.R
 c7f3ed68dee5a882c2f7c168577238d6 *tests/testthat/test-collect-content.R
 b6982fdbac71eb24e5a636ac46a99e26 *tests/testthat/test-dmoz-cat.R
-39586f1f85d105b099ed5e3eb31acdd5 *tests/testthat/test-e2e-fetch.R
+d9f970aeb3ca6708795c395f40156967 *tests/testthat/test-e2e-fetch.R
 531f83d2a72007908a1efbf9e3488a31 *tests/testthat/test-extract-text.R
 21d0d02199b209d9b81245747d9012e1 *tests/testthat/test-ml-cat.R
 9cc7f1af09c0c1dbe238dcdfdb6dc737 *tests/testthat/test-not-news.R

@@ -1,9 +1,9 @@
 Package: rdomains
 Title: Get the Category of Content Hosted by a Domain
-Version: 0.6.0
+Version: 0.6.1
 Authors@R: person("Gaurav", "Sood", email = "gsood07@gmail.com", role = c("aut", "cre"))
 Description: Fetch website content and classify it through the Python 'piedomains'
-    text model. Look up domains in UT-Capitole, Steven Black, university, archived
+    text model. Look up domains in 'UT-Capitole', Steven Black, university, archived
     'Shallalist' and 'DMOZ' lists, or use 'VirusTotal' <https://www.virustotal.com/>,
     'OpenAI' and 'Anthropic' APIs. Report collection outcomes and source provenance.
     Includes a historical domain-name classifier trained on 'Shallalist' data.
@@ -24,8 +24,8 @@ Encoding: UTF-8
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2026-10-27 05:26:08 UTC; soodoku
+Packaged: 2026-10-29 03:32:52 UTC; soodoku
 Author: Gaurav Sood [aut, cre]
 Maintainer: Gaurav Sood <gsood07@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-10-27 12:30:09 UTC
+Date/Publication: 2026-10-29 08:50:11 UTC
